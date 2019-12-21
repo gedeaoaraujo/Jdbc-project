@@ -1,9 +1,11 @@
 package model.dao.impl;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,10 +25,58 @@ public class SellerDaoJDBC implements SellerDao{
 		this.connection = connection;
 	}
 
+	/**
+	 * This method does a insertion into table seller
+	 */
 	@Override
 	public void insert(Seller seller) {
-		// TODO Auto-generated method stub
+
+		PreparedStatement statement = null;
 		
+		try {
+			/**
+			 * This query inserts into the table seller the specified attributes
+			 */
+			statement = connection.prepareStatement(
+					"INSERT INTO seller "
+					+ "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
+					+ "VALUES "
+					+ "(?, ?, ?, ?, ?)",
+					Statement.RETURN_GENERATED_KEYS);
+			
+			statement.setString(1, seller.getName());
+			statement.setString(2, seller.getEmail());
+			statement.setDate(3, new Date(seller.getBirthDate().getTime()));
+			statement.setDouble(4, seller.getBaseSalary());
+			statement.setInt(5, seller.getDepartment().getId());
+			
+			int rowsAffected = statement.executeUpdate();
+			
+			/**
+			 * If the rows affected is more then zero,
+			 * the generated keys is get and then
+			 * the id of object seller is set with this value
+			 */
+			if(rowsAffected > 0) {
+				ResultSet result = statement.getGeneratedKeys();
+				
+				if(result.next()) {
+					int id = result.getInt(1);
+					seller.setId(id);
+				}
+				
+				DB.closeResultSet(result);
+			}
+			else {
+				throw new DbException("Error! no rows affected");
+			}
+		}
+		catch(SQLException e) {
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(statement);
+		}
 	}
 
 	@Override
@@ -42,7 +92,7 @@ public class SellerDaoJDBC implements SellerDao{
 	}
 
 	/**
-	 * This method search for a seller in the database seller
+	 * This method search for a seller in the table seller
 	 * @param id is the Id of a seller
 	 */
 	@Override
@@ -120,6 +170,10 @@ public class SellerDaoJDBC implements SellerDao{
 		return department;
 	}
 
+	/**
+	 * This method return a list of all sellers
+	 * in the table seller
+	 */
 	@Override
 	public List<Seller> findAll() {
 		
@@ -173,6 +227,11 @@ public class SellerDaoJDBC implements SellerDao{
 		}
 	}
 
+	/**
+	 * This method returns a list of sellers
+	 * with the department specified, doing a join
+	 * in the table seller and the table department
+	 */
 	@Override
 	public List<Seller> findByDepartment(Department department) {
 		
