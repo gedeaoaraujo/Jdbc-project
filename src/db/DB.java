@@ -24,7 +24,7 @@ public class DB {
 		}		
 	}
 	
-	public static Connection createConnection() {
+	public static Connection getConnection() {
 		if(connection == null) {
 			try {
 				Properties properties = loadProperties();
