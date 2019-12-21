@@ -122,8 +122,55 @@ public class SellerDaoJDBC implements SellerDao{
 
 	@Override
 	public List<Seller> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		
+		PreparedStatement statement = null;
+		ResultSet result = null;
+		
+		try {
+			/**
+			 * This query joins the tables seller and department,
+			 * then shows a list of sellers ordered by Name attribute
+			 */
+			statement =  connection.prepareStatement(
+					"SELECT seller.*,department.Name as DepartmentName "
+					+ "FROM seller INNER JOIN department "
+					+ "ON seller.DepartmentId = department.Id "
+					+ "ORDER BY Name");
+			
+			result = statement.executeQuery();
+			
+			List<Seller> list = new ArrayList<>();
+			Map<Integer, Department> map = new HashMap<>();
+			
+			/**
+			 * Return a list of seller objects while the pointer 
+			 * is not pointing to a row out of range
+			 */
+			while(result.next()) {
+				
+				Department dep = map.get(result.getInt("DepartmentId"));
+				if(dep == null) {
+					dep = instantiateDepartment(result);
+					map.put(result.getInt("DepartmentId"), dep);
+				}
+				
+				Seller sellerObj = instantiateSeller(dep, result);
+				list.add(sellerObj);
+			}
+			
+			/**
+			 * Returns a empty list if the pointer is pointing
+			 * to a row out of range
+			 */
+			return list;
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(statement);
+			DB.closeResultSet(result);
+		}
 	}
 
 	@Override
@@ -181,5 +228,4 @@ public class SellerDaoJDBC implements SellerDao{
 			DB.closeResultSet(result);
 		}
 	}
-
 }
