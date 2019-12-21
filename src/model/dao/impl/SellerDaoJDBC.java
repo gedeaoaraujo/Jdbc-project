@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import db.DB;
 import db.DbException;
@@ -121,6 +124,62 @@ public class SellerDaoJDBC implements SellerDao{
 	public List<Seller> findAll() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<Seller> findByDepartment(Department department) {
+		
+		PreparedStatement statement = null;
+		ResultSet result = null;
+		
+		try {
+			/**
+			 * This query joins the tables seller and department,
+			 * then shows a list of sellers with the specific Id
+			 * ordered by Name attribute
+			 */
+			statement =  connection.prepareStatement(
+					"SELECT seller.*,department.Name as DepartmentName "
+					+ "FROM seller INNER JOIN department "
+					+ "ON seller.DepartmentId = department.Id "
+					+ "WHERE DepartmentId = ? "
+					+ "ORDER BY Name");
+			
+			statement.setInt(1, department.getId());
+			result = statement.executeQuery();
+			
+			List<Seller> list = new ArrayList<>();
+			Map<Integer, Department> map = new HashMap<>();
+			
+			/**
+			 * Return a list of seller objects while the pointer 
+			 * is not pointing to a row out of range
+			 */
+			while(result.next()) {
+				
+				Department dep = map.get(result.getInt("DepartmentId"));
+				if(dep == null) {
+					dep = instantiateDepartment(result);
+					map.put(result.getInt("DepartmentId"), dep);
+				}
+				
+				Seller sellerObj = instantiateSeller(dep, result);
+				list.add(sellerObj);
+			}
+			
+			/**
+			 * Returns a empty list if the pointer is pointing
+			 * to a row out of range
+			 */
+			return list;
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(statement);
+			DB.closeResultSet(result);
+		}
 	}
 
 }
