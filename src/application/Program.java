@@ -1,12 +1,10 @@
 package application;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import db.DB;
@@ -16,12 +14,13 @@ public class Program {
 
 	public static void main(String[] args) {
 		
-		SimpleDateFormat date = new SimpleDateFormat("dd/MM/yyyy");
+//		SimpleDateFormat date = new SimpleDateFormat("dd/MM/yyyy");
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
 		
 		try {
 			connection = DB.createConnection();
+			/*
 			preparedStatement = connection.prepareStatement(
 					"INSERT INTO seller "
 					+ "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
@@ -34,6 +33,11 @@ public class Program {
 			preparedStatement.setDate(3, new Date(date.parse("28/05/1993").getTime()));
 			preparedStatement.setInt(4, 1500);
 			preparedStatement.setInt(5, 2);
+			*/
+			
+			preparedStatement = connection.prepareStatement(
+					"INSERT INTO department (Name) VALUES ('D1'),('D2')",
+					Statement.RETURN_GENERATED_KEYS);
 			
 			int rows = preparedStatement.executeUpdate();
 			
@@ -52,9 +56,11 @@ public class Program {
 		catch (SQLException e) {
 			throw new DbException(e.getMessage());
 		}
+		/*
 		catch(ParseException e) {
 			throw new DbException(e.getMessage());
 		}
+		*/
 		finally {
 			DB.closeStatement(preparedStatement);
 			DB.closeConnection();
