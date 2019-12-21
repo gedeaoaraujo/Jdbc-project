@@ -63,22 +63,12 @@ public class SellerDaoJDBC implements SellerDao{
 			result = statement.executeQuery();
 			
 			/**
-			 * Return true if the pointer is not in the first line
+			 * Return the seller object if the pointer is not pointing
+			 * to a row out of range
 			 */
 			if(result.next()) {
-				
-				Department department = new Department();
-				department.setId(result.getInt("DepartmentId"));
-				department.setName(result.getString("DepartmentName"));
-				
-				Seller seller = new Seller();
-				seller.setId(result.getInt("Id"));
-				seller.setEmail(result.getString("Email"));
-				seller.setName(result.getString("Name"));
-				seller.setBirthDate(result.getDate("BirthDate"));
-				seller.setBaseSalary(result.getDouble("BaseSalary"));
-				seller.setDepartment(department);
-				
+				Department department = instantiateDepartment(result);
+				Seller seller = instantiateSeller(department, result);
 				return seller;
 			}
 			
@@ -94,6 +84,37 @@ public class SellerDaoJDBC implements SellerDao{
 			DB.closeStatement(statement);
 			DB.closeResultSet(result);
 		}
+	}
+
+	/**
+	 * This method instantiates a seller object
+	 * @param department is the department associated with the seller
+	 * @param result is the return of a ResultSet from the connection 
+	 * @return returns a seller object
+	 * @throws SQLException propagates a exception
+	 */
+	private Seller instantiateSeller(Department department, ResultSet result) throws SQLException {
+		Seller seller = new Seller();
+		seller.setId(result.getInt("Id"));
+		seller.setEmail(result.getString("Email"));
+		seller.setName(result.getString("Name"));
+		seller.setBirthDate(result.getDate("BirthDate"));
+		seller.setBaseSalary(result.getDouble("BaseSalary"));
+		seller.setDepartment(department);
+		return seller;
+	}
+
+	/**
+	 * This method instantiates a department object 
+	 * @param result is a ResultSet type used to get the parameters
+	 * @return returns a department object
+	 * @throws SQLException propagates a exception
+	 */
+	private Department instantiateDepartment(ResultSet result) throws SQLException {
+		Department department = new Department();
+		department.setId(result.getInt("DepartmentId"));
+		department.setName(result.getString("DepartmentName"));
+		return department;
 	}
 
 	@Override
